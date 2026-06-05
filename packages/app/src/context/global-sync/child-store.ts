@@ -98,6 +98,24 @@ export function createChildStoreManager(input: {
     })
   }
 
+  function disposeChild(key: DirectoryKey) {
+    const dispose = disposers.get(key)
+    if (!key || !children[key]) return false
+    vcsCache.delete(key)
+    metaCache.delete(key)
+    iconCache.delete(key)
+    lifecycle.delete(key)
+    mcpDirectories.delete(key)
+    mcpToggles.delete(key)
+    disposers.delete(key)
+    delete children[key]
+    input.onDispose(key)
+    if (dispose) {
+      dispose()
+    }
+    return true
+  }
+
   function disposeDirectory(directory: DirectoryKey) {
     const key = directory
     if (
@@ -112,20 +130,13 @@ export function createChildStoreManager(input: {
       return false
     }
 
-    vcsCache.delete(key)
-    metaCache.delete(key)
-    iconCache.delete(key)
-    lifecycle.delete(key)
-    mcpDirectories.delete(key)
-    mcpToggles.delete(key)
-    const dispose = disposers.get(key)
-    if (dispose) {
-      dispose()
-      disposers.delete(key)
+    return disposeChild(key)
+  }
+
+  function disposeAll() {
+    for (const directory of Object.keys(children)) {
+      disposeChild(directoryKey(directory))
     }
-    delete children[key]
-    input.onDispose(key)
-    return true
   }
 
   function runEviction(skip?: string) {
@@ -354,6 +365,7 @@ export function createChildStoreManager(input: {
     mcp: (directory: string) => mcpDirectories.has(directoryKey(directory)),
     disableMcp,
     disposeDirectory,
+    disposeAll,
     runEviction,
     vcsCache,
     metaCache,

@@ -43,6 +43,7 @@ import { PromptProvider } from "@/context/prompt"
 import { ServerConnection, ServerProvider, serverName, useServer } from "@/context/server"
 import { SettingsProvider, useSettings } from "@/context/settings"
 import { TerminalProvider } from "@/context/terminal"
+import { WslServersProvider } from "@/context/wsl-servers"
 import { TabsProvider } from "@/context/tabs"
 import DirectoryLayout from "@/pages/directory-layout"
 import Layout from "@/pages/layout"
@@ -71,7 +72,7 @@ declare global {
     __OPENCODE__?: {
       updaterEnabled?: boolean
       deepLinks?: string[]
-      wsl?: boolean
+      activeServer?: string
     }
     api?: {
       setTitlebar?: (theme: { mode: "light" | "dark" }) => Promise<void>
@@ -171,11 +172,13 @@ export function AppBaseProviders(props: ParentProps<{ locale?: Locale }>) {
               }}
             >
               <QueryProvider>
-                <DialogProvider>
-                  <MarkedProvider>
-                    <FileComponentProvider component={File}>{props.children}</FileComponentProvider>
-                  </MarkedProvider>
-                </DialogProvider>
+                <WslServersProvider>
+                  <DialogProvider>
+                    <MarkedProvider>
+                      <FileComponentProvider component={File}>{props.children}</FileComponentProvider>
+                    </MarkedProvider>
+                  </DialogProvider>
+                </WslServersProvider>
               </QueryProvider>
             </ErrorBoundary>
           </UiI18nBridge>
@@ -292,11 +295,11 @@ function ConnectionError(props: { onRetry?: () => void; onServerSelected?: (key:
   )
 }
 
-function ServerKey(props: ParentProps) {
+function ServerKey(props: { children: (key: ServerConnection.Key) => JSX.Element }) {
   const server = useServer()
   return (
     <Show when={server.key} keyed>
-      {props.children}
+      {(key) => props.children(key)}
     </Show>
   )
 }
@@ -322,13 +325,15 @@ export function AppInterface(props: {
             root={(routerProps) => (
               <TabsProvider>
                 <ServerKey>
-                  <QueryProvider>
-                    <ServerSDKProvider>
-                      <ServerSyncProvider>
-                        <RouterRoot appChildren={props.children}>{routerProps.children}</RouterRoot>
-                      </ServerSyncProvider>
-                    </ServerSDKProvider>
-                  </QueryProvider>
+                  {() => (
+                    <QueryProvider>
+                      <ServerSDKProvider>
+                        <ServerSyncProvider>
+                          <RouterRoot appChildren={props.children}>{routerProps.children}</RouterRoot>
+                        </ServerSyncProvider>
+                      </ServerSDKProvider>
+                    </QueryProvider>
+                  )}
                 </ServerKey>
               </TabsProvider>
             )}

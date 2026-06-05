@@ -1130,6 +1130,7 @@ function LegacyHome() {
     if (healthy === false) return "bg-icon-critical-base"
     return "bg-border-weak-base"
   })
+  const useWebDirectoryPicker = createMemo(() => server.current?.type === "sidecar" && server.current.variant === "wsl")
 
   function openProject(server: ServerConnection.Any, directory: string) {
     const serverCtx = global.createServerCtx(server)
@@ -1152,7 +1153,7 @@ function LegacyHome() {
       }
     }
 
-    if (platform.openDirectoryPickerDialog && server.isLocal()) {
+    if (platform.openDirectoryPickerDialog && server.isLocal() && !useWebDirectoryPicker()) {
       const result = await platform.openDirectoryPickerDialog?.({
         title: language.t("command.project.open"),
         multiple: true,
