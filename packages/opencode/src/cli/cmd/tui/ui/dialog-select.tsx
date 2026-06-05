@@ -53,6 +53,7 @@ export interface DialogSelectOption<T = any> {
   titleView?: JSX.Element
   value: T
   description?: string
+  search?: string
   details?: string[]
   footer?: JSX.Element | string
   titleWidth?: number
