@@ -14,6 +14,8 @@ import { NonNegativeInt, PositiveInt, RelativePath } from "./schema"
 import { Protected } from "./filesystem/protected"
 import { Ripgrep } from "./filesystem/ripgrep"
 
+export import AppFileSystem = FSUtil
+
 export const ReadInput = Schema.Struct({
   path: RelativePath,
   reference: Schema.NonEmptyString.pipe(Schema.optional),
